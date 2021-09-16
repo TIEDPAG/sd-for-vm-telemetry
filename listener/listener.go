@@ -135,11 +135,6 @@ func (l *Listener) Run() {
 					if w, ok := l.watcherMap[ns.Name]; ok {
 						log.Printf("Stop namespace %s watcher\n", ns.Name)
 						stopWatcher(w)
-						log.Printf("Send namespace %s delete event\n", ns.Name)
-						l.eventChan <- event.Event{
-							Type:      event.TypeDelete,
-							Namespace: ns.Name,
-						}
 						delete(l.watcherMap, ns.Name)
 						delete(l.namespaceMap, ns.Name)
 					}
