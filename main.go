@@ -17,6 +17,7 @@ package main
 import (
 	"k8s.io/client-go/rest"
 	"log"
+	"sd-for-vm-telemetry/listener"
 )
 
 func main() {
@@ -25,14 +26,10 @@ func main() {
 		log.Println("get in cluster configuration failed")
 		panic(err.Error())
 	}
-	// Create the stop channel for all of the servers.
-	stop := make(chan struct{})
 
-	// start the workload entry watcher
-	log.Println("starting new watcher for workload entries")
-	watcher := NewWatcher(config)
-	watcher.Start(stop)
+	lis := listener.NewListener(config)
+	lis.Run()
 
 	log.Println("waiting to be stopped")
-	watcher.WaitSignal(stop)
+	lis.WaitSignal()
 }
