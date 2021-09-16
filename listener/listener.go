@@ -12,8 +12,11 @@ import (
 	"k8s.io/client-go/rest"
 	"log"
 	"os"
+	"os/signal"
 	"sd-for-vm-telemetry/event"
+	"sd-for-vm-telemetry/event/handler"
 	"sd-for-vm-telemetry/watcher"
+	"syscall"
 	"time"
 )
 
@@ -33,9 +36,11 @@ type Listener struct {
 	istioClient *versioned.Clientset
 	k8sClient   *kubernetes.Clientset
 
+	nsWatch      watch.Interface
 	watcherMap   map[string]watchManager
 	namespaceMap map[string]*v1.Namespace
 	eventChan    chan event.Event
+	stop         chan struct{}
 }
 
 type watchManager struct {
@@ -68,13 +73,31 @@ func NewListener(restConfig *rest.Config) *Listener {
 		istioClient: ic,
 		k8sClient:   kc,
 
-		eventChan: make(chan event.Event),
+		watcherMap:   make(map[string]watchManager),
+		namespaceMap: make(map[string]*v1.Namespace),
+		eventChan:    make(chan event.Event),
+		stop:         make(chan struct{}),
 	}
 	return lis
 }
 
 func (l *Listener) Run() {
 	go func() {
+		<-l.stop
+
+		if l.nsWatch != nil {
+			l.nsWatch.Stop()
+		}
+		for _, wm := range l.watcherMap {
+			stopWatcher(wm)
+		}
+		close(l.eventChan)
+	}()
+
+	go func() {
+		h := handler.NewHandler(l.eventChan)
+		h.Start()
+
 	nsWatch:
 		for {
 			labelSelector := metav1.LabelSelector{}
@@ -90,6 +113,7 @@ func (l *Listener) Run() {
 				<-time.After(15 * time.Second)
 				continue
 			}
+			l.nsWatch = nsWatch
 
 			for e := range nsWatch.ResultChan() {
 				ns := e.Object.(*v1.Namespace)
@@ -147,6 +171,13 @@ func (l *Listener) Run() {
 			}
 		}
 	}()
+}
+
+func (l *Listener) WaitSignal() {
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+	<-sigs
+	close(l.stop)
 }
 
 func isCareNamespace(ns *v1.Namespace) bool {
