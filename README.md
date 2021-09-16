@@ -33,6 +33,10 @@ make docker.push
 ## Update
 In the original plan, during the istio version upgrade process, the new fields in the proto file will cause the watch to return an error, which will cause the application to crash, and the community-provided plan is to increase the container operation in the promethus pod. This error will cause promethus It is unable to enter the healthy state, so fork has made a response modification. The modification points are as follows:
 
-- 0.2.0
+- v0.2.0
   - Support istio 1.10.3
   - Retry when watch returns an error
+- v0.3.0
+  - Use file save sd config
+  - Namespace isolation watcher
+  - Use label enabled watcher
