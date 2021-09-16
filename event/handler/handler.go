@@ -79,6 +79,9 @@ event:
 
 func getCurConfig() ([]map[string][]string, error) {
 	bs, err := ioutil.ReadFile(fileFullPath)
+	if os.IsNotExist(err) {
+		return make([]map[string][]string, 0), nil
+	}
 	if err != nil && err != io.EOF {
 		return nil, err
 	}

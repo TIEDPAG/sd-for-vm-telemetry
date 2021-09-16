@@ -70,6 +70,7 @@ func (w *Watcher) handleEvent(retryNum int) {
 			}
 			w.eventChan <- event.Event{
 				Type:      et,
+				Name:      wle.Name,
 				Namespace: w.namespace,
 				Address:   newTargetAddr,
 			}

@@ -54,7 +54,7 @@ func NewListener(restConfig *rest.Config) *Listener {
 		defaultWatchNS = true
 		log.Println("Enable watch of unlabeled namespace")
 	} else {
-		log.Printf("Listen to the namespace where the isti-vm-watch value is enabled")
+		log.Printf("Listen to the namespace where the istio-vm-watch value is enabled")
 	}
 
 	// istio client
@@ -102,7 +102,7 @@ func (l *Listener) Run() {
 		for {
 			labelSelector := metav1.LabelSelector{}
 			if !defaultWatchNS {
-				labelSelector.MatchLabels[LabelWatchNS] = StatusEnabled
+				labelSelector.MatchLabels = map[string]string{LabelWatchNS: StatusEnabled}
 			}
 
 			nsWatch, err := l.k8sClient.CoreV1().Namespaces().Watch(context.TODO(), metav1.ListOptions{

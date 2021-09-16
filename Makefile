@@ -3,7 +3,7 @@
 BINARY=vm-discovery
 DOCKER_REPO=tiedpag
 IMAGE=$(DOCKER_REPO)/vm-discovery
-IMAGE_TAG=v0.2.0
+IMAGE_TAG=v0.3.0
 FINDFILES=find . \( -path ./common-protos -o -path ./.git -o -path ./out -o -path ./.github -o -path ./licenses -o -path ./vendor \) -prune -o -type f
 XARGS = xargs -0 -r
 
